@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:java="http://www.mulesoft.org/schema/mule/java"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="57f417fb-d00e-47b7-b258-ae803d01a1ed" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="6c7ec155-d346-4fdb-a357-860414942263" file="dev.yaml" />
+	<configuration doc:name="Configuration" doc:id="f8fca08f-c8c2-410f-b54a-6fab72cc4add" defaultErrorHandler-ref="testError_Handler" />
+	<flow name="testFlow" doc:id="6754d29c-0b6b-4f7a-ae48-134a7d446b42" >
+		<http:listener doc:name="Listener" doc:id="a01f579a-df5a-4b3f-9492-069f6cfaa3d6" config-ref="HTTP_Listener_config" path="/test"/>
+		<logger level="INFO" doc:name="Logger" doc:id="4379cd48-a4b8-4b5f-89cd-a03950651445" message="#[payload]"/>
+		<parallel-foreach doc:name="Parallel For Each" doc:id="75a02c57-c01b-45a5-8272-e51d6ecdcc05" collection="#[[1,2,3,4]]">
+			<set-payload value='#["test"]' doc:name="Set Payload" doc:id="5c224fa4-fed8-4a5a-bb5f-a1680415ba54" />
+		</parallel-foreach>
+		<logger level="INFO" doc:name="Logger" doc:id="87bc02c4-e4dc-42c6-a12e-eddc507aabbe" message='#["payload" : payload]'/>
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="676e573e-ec12-4f07-956b-00d96d76fe5a" >
+				<logger level="INFO" doc:name="Logger" doc:id="e4e79be8-2be3-4ed3-853f-d5aff27a1220" message='#["In Main Flow"]'/>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<error-handler name="testError_Handler" doc:id="fa33a43a-15e2-4dce-9ad8-76f20d0ca2b6" >
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="6fddace6-59cd-4415-a379-1e167d11a717" >
+			<logger level="INFO" doc:name="Logger" doc:id="cb259ddf-3405-44e2-a075-ab19b5ce90c6" message='#["In Global Error Handler"]'/>
+		</on-error-continue>
+	</error-handler>
+	<flow name="privateFlow" doc:id="5fc4cb54-d97e-4562-baa8-08f039e94816">
+		<validation:is-email doc:name="Is email" doc:id="14adabce-612b-4c95-870c-2eccab43057c" email="#[payload]" message="not an email" />
+		<error-handler>
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="df86890f-6d56-4ca8-8111-b767b1118143" >
+				<logger level="INFO" doc:name="Logger" doc:id="3909ebaa-1f7a-4be5-8b4c-6d8130cd34b3" message='#["In private Flow"]'/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>
